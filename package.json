@@ -1,0 +1,11 @@
+{
+  "name": "webglgpgpu",
+  "version": "1.0.0",
+  "description": "WebGL GPGPU",
+  "main": "app/main.js",
+  "author": "Christian Dugenio <christiandugenio@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "twgl.js": "^4.0.0"
+  }
+}
