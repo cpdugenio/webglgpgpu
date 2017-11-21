@@ -6,6 +6,8 @@
   "author": "Christian Dugenio <christiandugenio@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "benchmark": "^2.1.4",
+    "stats.js": "https://github.com/mrdoob/stats.js.git",
     "twgl.js": "^4.0.0"
   }
 }
