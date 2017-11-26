@@ -1,2 +1,2 @@
 server:
-	python -m SimpleHTTPServer
+	python serve.py 8008
