@@ -2,6 +2,7 @@
 uniform sampler3D input3d;
 uniform sampler3D kernel3d;
 uniform float kernelindex;
+uniform float inputindex;
 
 in vec2 f_uv;
 out vec4 frag_color;
@@ -19,8 +20,8 @@ void main() {
                 color += ifetch * kfetch;
                 */
                 color +=
-                    texelFetch(input3d, ivec3(round(f_uv.y + y), round(f_uv.x + x), z), 0) *
-                    texelFetch(kernel3d, ivec3(y, x, z+kernelindex*KW), 0);
+                    texelFetch(input3d, ivec3(round(f_uv.y + y), round(f_uv.x + x), inputindex*IW+z), 0) *
+                    texelFetch(kernel3d, ivec3(y, x, kernelindex*KW+z), 0);
             }
         }
     }

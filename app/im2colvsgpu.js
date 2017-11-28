@@ -22,8 +22,8 @@ require(
         /* PROPS */
         const kwidth = 20;
         const kheight = 20;
-        const kdepth = 3;
-        const kcount = 1;
+        const kdepth = 1;
+        const kcount = 3;
         const RGBA = 4;
 
         // var canvas = document.createElement( 'canvas' );
@@ -34,7 +34,8 @@ require(
         var image = document.getElementById("input");
         var iheight = image.height;
         var iwidth = image.width;
-        var idepth = 3;
+        var idepth = 1;
+        var icount = 3;
         var ctx = canvasbody.getContext('2d');
         canvasbody.width = iwidth;
         canvasbody.height = iheight;
@@ -48,7 +49,7 @@ require(
         ctx.clearRect(0,0,iwidth,iheight)
         // iheight = 32;
         // iwidth = 32;
-        const inputdata = new Float32Array(iwidth*iheight*idepth);
+        const inputdata = new Float32Array(iwidth*iheight*idepth*icount);
         for(var i=0; i<iwidth*iheight; i++){
             inputdata[iwidth*iheight*0+i] = inputdata_strided[4*i+0];
             inputdata[iwidth*iheight*1+i] = inputdata_strided[4*i+1];
@@ -58,7 +59,7 @@ require(
 
         const owidth = iwidth - kwidth + 1;
         const oheight = iheight - kheight + 1;
-        const odepth = kcount;
+        const odepth = kcount*icount;
 
         /* For float buffers */
         var ext = (
@@ -70,6 +71,7 @@ require(
                       + "#define KU " + kwidth + ".0 \n"
                       + "#define KV " + kheight + ".0 \n"
                       + "#define KW " + kdepth + ".0 \n"
+                      + "#define IW " + idepth + ".0 \n"
                       + "precision highp float;\n"
                       + "precision highp sampler3D;\n" + convolve_fs;
         const convolveProgram = twgl.createProgramInfo(gl, [convolve_vs, convolve_fs]);
@@ -109,7 +111,7 @@ require(
             target: gl.TEXTURE_3D,
             width: iwidth,
             height: iheight,
-            depth: idepth,
+            depth: idepth*icount,
             minMag: gl.NEAREST,
             internalFormat: gl.R32F,
             type: gl.FLOAT,
@@ -118,7 +120,7 @@ require(
 
         /* Kernel 3D texture  (A, B, Z*N) */
         const kerneldata = new Float32Array(kwidth*kheight*kdepth*kcount);
-        kerneldata.fill(1.0/(kwidth*kheight*3.0));
+        kerneldata.fill(1.0/(kwidth*kheight));
 
         const kernel3d = twgl.createTexture(gl, {
             target: gl.TEXTURE_3D,
@@ -136,7 +138,7 @@ require(
             target: gl.TEXTURE_3D,
             width: iwidth-kwidth+1,
             height: iheight-kheight+1,
-            depth: kcount,
+            depth: kcount*icount,
             minMag: gl.NEAREST,
             internalFormat: gl.R32F,
             type: gl.FLOAT,
@@ -165,40 +167,45 @@ require(
         }
 
         function glsl_convolve(){
-            for(var d=0; d<kcount; d++)
-            {
-                // TOOD: SELECT CORRECT TARGET TEXTURE Z-SLICE
-                var start = performance.now();
-                const uniforms = {
-                    input3d: input3d,
-                    kernel3d: kernel3d,
-                    kernelindex: d,
-                };
-                twgl.setUniforms(convolveProgram, uniforms);
-                twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLE_STRIP, 4);
-                var end = performance.now();
-                var duration = end - start;
-                console.log(duration);
+            for(var ii=0; ii<icount; ii++){
+                for(var d=0; d<kcount; d++)
+                {
+                    // TOOD: SELECT CORRECT TARGET TEXTURE Z-SLICE
+                    var start = performance.now();
+                    const uniforms = {
+                        input3d: input3d,
+                        kernel3d: kernel3d,
+                        kernelindex: d,
+                        inputindex: ii,
+                    };
+                    twgl.setUniforms(convolveProgram, uniforms);
+                    twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLE_STRIP, 4);
+                    var end = performance.now();
+                    var duration = end - start;
+                    console.log(duration);
 
-                var framebufferDump2D = new Float32Array(owidth*oheight*4);
-                gl.readPixels(0, 0, owidth, oheight, gl.RGBA, gl.FLOAT, framebufferDump2D)
-                var framebufferDump = new Float32Array(
-                    framebufferDump2D.filter(function (d, i) { return i % 4 == 0; }));
-                console.log(framebufferDump);
+                    /*
+                    var framebufferDump2D = new Float32Array(owidth*oheight*4);
+                    gl.readPixels(0, 0, owidth, oheight, gl.RGBA, gl.FLOAT, framebufferDump2D)
+                    var framebufferDump = new Float32Array(
+                        framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
+                    console.log(framebufferDump);
 
-                var myImageData = ctx.createImageData(owidth, oheight);
-                for(var i=0; i<framebufferDump.length; i++){
-                    myImageData.data[i*4+0] = framebufferDump[i];
-                    myImageData.data[i*4+1] = framebufferDump[i];
-                    myImageData.data[i*4+2] = framebufferDump[i];
-                    myImageData.data[i*4+3] = 255;
+                    var myImageData = ctx.createImageData(owidth, oheight);
+                    for(var i=0; i<framebufferDump.length; i++){
+                        myImageData.data[i*4+0] = framebufferDump[i];
+                        myImageData.data[i*4+1] = framebufferDump[i];
+                        myImageData.data[i*4+2] = framebufferDump[i];
+                        myImageData.data[i*4+3] = 255;
+                    }
+                    console.log(myImageData.data.length);
+                    console.log(framebufferDump.length*4);
+                    canvasbody.width = owidth;
+                    canvasbody.height = oheight;
+                    ctx.clearRect(0,0,owidth,oheight)
+                    ctx.putImageData(myImageData, 0, 0);
+                    */
                 }
-                console.log(myImageData.data.length);
-                console.log(framebufferDump.length*4);
-                canvasbody.width = owidth;
-                canvasbody.height = oheight;
-                ctx.clearRect(0,0,owidth,oheight)
-                ctx.putImageData(myImageData, 0, 0);
             }
         }
 
