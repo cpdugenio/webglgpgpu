@@ -8,16 +8,23 @@ require.config({
 require(
     ["text", "text!shaders/convolve.vs", "text!shaders/convolve.fs", "text!shaders/drawtexture.vs", "text!shaders/drawtexture.fs"],
     function(text, convolve_vs, convolve_fs, tex_vs, tex_fs){
+        /* SETUP GL */
+        const gl = document.createElement("canvas").getContext("webgl2");
+        const canvasbody = document.getElementById("glcanvas");
+        if (!gl) {
+            var msg = document.createElement('div');
+            msg.innerHTML = "Failed to obtain WebGL 2.0 context."
+            document.body.removeChild(canvasbody)
+            document.body.appendChild(msg);
+            throw new Error("Failed to obtain WebGL 2.0 context.");
+        }
+        const context2d = document.createElement("canvas").getContext("2d");
+
         /* INJECT STATS */
         var stats;
         stats =  new Stats();
         stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
         document.body.appendChild( stats.dom );
-
-        /* SETUP GL */
-        const gl = document.createElement("canvas").getContext("webgl2");
-        const canvasbody = document.getElementById("glcanvas");
-        const context2d = document.createElement("canvas").getContext("2d");
 
         /* For float buffers */
         var ext = (
