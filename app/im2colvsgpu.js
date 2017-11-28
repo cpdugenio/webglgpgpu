@@ -6,8 +6,8 @@ require.config({
 });
 
 require(
-    ["text", "text!shaders/convolve.vs", "text!shaders/convolve.fs"],
-    function(text, convolve_vs, convolve_fs){
+    ["text", "text!shaders/convolve.vs", "text!shaders/convolve.fs", "text!shaders/drawtexture.vs", "text!shaders/drawtexture.fs"],
+    function(text, convolve_vs, convolve_fs, tex_vs, tex_fs){
         /* INJECT STATS */
         var stats;
         stats =  new Stats();
@@ -19,11 +19,16 @@ require(
         const canvasbody = document.getElementById("glcanvas");
         const context2d = document.createElement("canvas").getContext("2d");
 
+        /* For float buffers */
+        var ext = (
+              gl.getExtension('EXT_color_buffer_float')
+        );
+
         /* PROPS */
         const kwidth = 20;
         const kheight = 20;
         const kdepth = 1;
-        const kcount = 3;
+        const kcount = 1;
         const RGBA = 4;
 
         // var canvas = document.createElement( 'canvas' );
@@ -59,12 +64,8 @@ require(
 
         const owidth = iwidth - kwidth + 1;
         const oheight = iheight - kheight + 1;
-        const odepth = kcount*icount;
-
-        /* For float buffers */
-        var ext = (
-              gl.getExtension('EXT_color_buffer_float')
-        );
+        const odepth = kcount;
+        const ocount = icount;
 
         /* Augment fragment shader */
         convolve_fs = "#version 300 es\n"
@@ -138,14 +139,13 @@ require(
             target: gl.TEXTURE_3D,
             width: iwidth-kwidth+1,
             height: iheight-kheight+1,
-            depth: kcount*icount,
+            depth: odepth*ocount,
             minMag: gl.NEAREST,
             internalFormat: gl.R32F,
             type: gl.FLOAT,
             data: null,
         });
 
-        twgl.bindFramebufferInfo(gl, framebufferInfo2D);
         gl.useProgram(convolveProgram.program);
         twgl.setBuffersAndAttributes(gl, convolveProgram, bufferInfo);
 
@@ -170,7 +170,12 @@ require(
             for(var ii=0; ii<icount; ii++){
                 for(var d=0; d<kcount; d++)
                 {
-                    // TOOD: SELECT CORRECT TARGET TEXTURE Z-SLICE
+                    // select correct target texture z-slice
+                    twgl.bindFramebufferInfo(gl, framebufferInfo2D);
+                    gl.bindTexture(gl.TEXTURE_3D, target3d);
+                    gl.framebufferTextureLayer(
+                        gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, target3d, 0, ii*kcount+d);
+
                     var start = performance.now();
                     const uniforms = {
                         input3d: input3d,
@@ -241,6 +246,78 @@ require(
         }
 
         glsl_convolve();
+
+        const texProgram = twgl.createProgramInfo(gl, [tex_vs, tex_fs]);
+        const texArrays = {
+            position: {
+                numComponents: 2,
+                data: [
+                    -1.0, -1.0,
+                    +1.0, -1.0,
+                    -1.0, +1.0,
+                    +1.0, +1.0,
+                ],
+            },
+            uv: {
+                numComponents: 2,
+                data: [
+                    -0.5, -0.5,
+                    -0.5, iwidth-0.5,
+                    iheight-0.5, -0.5,
+                    iheight-0.5, iwidth-0.5,
+                ],
+            },
+        };
+        const texBufferInfo = twgl.createBufferInfoFromArrays(gl, texArrays);
+        const texFramebufferAttachments = [
+            {
+                internalFormat: gl.R32F,
+                type: gl.FLOAT,
+            },
+        ];
+        const texFramebufferInfo2D = twgl.createFramebufferInfo(
+            gl, texFramebufferAttachments, owidth, oheight);
+        gl.useProgram(texProgram.program);
+        twgl.setBuffersAndAttributes(gl, texProgram, texBufferInfo);
+        twgl.bindFramebufferInfo(gl, texFramebufferInfo2D);
+
+        var d = 0;
+        function drawloop(){
+            stats.begin();
+
+            const uniforms = {
+                resolution: [owidth, oheight],
+                tex: target3d,
+                d: d,
+            };
+            twgl.setUniforms(texProgram, uniforms);
+            twgl.drawBufferInfo(gl, texFramebufferInfo2D, gl.TRIANGLE_STRIP, 4);
+
+            var framebufferDump2D = new Float32Array(owidth*oheight*4);
+            gl.readPixels(0, 0, owidth, oheight, gl.RGBA, gl.FLOAT, framebufferDump2D)
+            var framebufferDump = new Float32Array(
+                framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
+
+            var myImageData = ctx.createImageData(owidth, oheight);
+            for(var i=0; i<framebufferDump.length; i++){
+                myImageData.data[i*4+0] = framebufferDump[i];
+                myImageData.data[i*4+1] = framebufferDump[i];
+                myImageData.data[i*4+2] = framebufferDump[i];
+                myImageData.data[i*4+3] = 255;
+            }
+            canvasbody.width = owidth;
+            canvasbody.height = oheight;
+            ctx.clearRect(0,0,owidth,oheight)
+            ctx.putImageData(myImageData, 0, 0);
+            d = (d + 1) % (odepth * ocount);
+
+            stats.end();
+
+            requestAnimationFrame(drawloop);
+        }
+
+        requestAnimationFrame(drawloop);
+
 
         // var minny = 10000.0;
         // var maxy = 0.0;
