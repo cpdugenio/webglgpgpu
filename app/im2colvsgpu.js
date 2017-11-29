@@ -269,9 +269,9 @@ require(
                 numComponents: 2,
                 data: [
                     -0.5, -0.5,
-                    -0.5, iwidth-0.5,
-                    iheight-0.5, -0.5,
-                    iheight-0.5, iwidth-0.5,
+                    -0.5, owidth-0.5,
+                    oheight-0.5, -0.5,
+                    oheight-0.5, owidth-0.5,
                 ],
             },
         };
@@ -298,7 +298,7 @@ require(
                 d: d,
             };
             twgl.setUniforms(texProgram, uniforms);
-            twgl.drawBufferInfo(gl, texFramebufferInfo2D, gl.TRIANGLE_STRIP, 4);
+            twgl.drawBufferInfo(gl, texBufferInfo, gl.TRIANGLE_STRIP, 4);
 
             var framebufferDump2D = new Float32Array(owidth*oheight*4);
             gl.readPixels(0, 0, owidth, oheight, gl.RGBA, gl.FLOAT, framebufferDump2D)
