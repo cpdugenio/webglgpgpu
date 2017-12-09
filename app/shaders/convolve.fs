@@ -3,6 +3,7 @@ uniform sampler3D input3d;
 uniform sampler3D kernel3d;
 uniform float kernelindex;
 uniform float inputindex;
+uniform float IW;
 
 in vec2 f_uv;
 out vec4 frag_color;

@@ -79,7 +79,6 @@ require(
                       + "#define KU " + kwidth + ".0 \n"
                       + "#define KV " + kheight + ".0 \n"
                       + "#define KW " + kdepth + ".0 \n"
-                      + "#define IW " + idepth + ".0 \n"
                       + "precision highp float;\n"
                       + "precision highp sampler3D;\n" + convolve_fs;
         const convolveProgram = twgl.createProgramInfo(gl, [convolve_vs, convolve_fs]);
@@ -189,6 +188,7 @@ require(
                         kernel3d: kernel3d,
                         kernelindex: d,
                         inputindex: ii,
+                        IW: idepth,
                     };
                     twgl.setUniforms(convolveProgram, uniforms);
                     twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLE_STRIP, 4);
