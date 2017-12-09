@@ -65,10 +65,10 @@ define(
                 this.arrays.uv = {
                     numComponents: 2,
                     data: [
-                        -0.5,              -0.5,
-                        -0.5,              input_TWHDN.w-0.5,
-                        input_TWHDN.h-0.5, -0.5,
-                        input_TWHDN.h-0.5, input_TWHDN.w-0.5,
+                         -0.5,              -0.5,
+                         input_TWHDN.w-0.5, -0.5,
+                         -0.5,              input_TWHDN.h-0.5,
+                         input_TWHDN.w-0.5, input_TWHDN.h-0.5,
                     ],
                 };
                 this.bufferInfo = twgl.createBufferInfoFromArrays(gl, this.arrays);

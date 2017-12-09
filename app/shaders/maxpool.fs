@@ -12,8 +12,8 @@ void main() {
         for(float y=0.0; y<SIZE; y++){
             val = texelFetch(
                 input3d, ivec3(
-                    round(f_uv.y*STRIDE + y),
                     round(f_uv.x*STRIDE + x),
+                    round(f_uv.y*STRIDE + y),
                     inputindex), 0).x;
             if(val > maxval){
                 maxval = val;
