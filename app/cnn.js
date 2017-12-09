@@ -7,7 +7,7 @@ require.config({
 
 require(
     ["text", "text!shaders/convolve.vs", "text!shaders/convolve.fs",
-        "convolve", "createarray", "utils"],
+        "convolution2d", "createarray", "utils"],
     function(text, convolve_vs, convolve_fs,
             Convolution2D, create_array, utils){
         /* SETUP GL */
