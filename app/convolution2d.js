@@ -58,6 +58,15 @@ define(
             };
 
             this.forward = function(input_TWHDN){
+                /* Setup target texture */
+                var output_WHDN = {
+                    'w': input_TWHDN.w - this.kernel_TWHDN.w + 1,
+                    'h': input_TWHDN.h - this.kernel_TWHDN.h + 1,
+                    'd': this.kernel_TWHDN.n,
+                    'n': input_TWHDN.n,
+                };
+                this.output_T = create_array(gl, output_WHDN, null);
+
                 /* Setup program draw buffer info */
                 this.arrays.uv = {
                     numComponents: 2,
@@ -78,15 +87,6 @@ define(
                 framebufferInfo2D = twgl.createFramebufferInfo(
                     gl, framebufferAttachments, input_TWHDN.w, input_TWHDN.h);
 
-                /* Setup target texture */
-                var output_WHDN = {
-                    'w': input_TWHDN.w - this.kernel_TWHDN.w + 1,
-                    'h': input_TWHDN.h - this.kernel_TWHDN.h + 1,
-                    'd': this.kernel_TWHDN.n,
-                    'n': input_TWHDN.n,
-                };
-                this.output_T = create_array(gl, output_WHDN, null);
-
                 /* Begin forward pass */
                 gl.useProgram(this.program.program);
                 twgl.setBuffersAndAttributes(gl, this.program, bufferInfo);
@@ -94,6 +94,7 @@ define(
                 var uniforms = {
                     'input3d': input_TWHDN.t,
                     'kernel3d': this.kernel_TWHDN.t,
+                    'inputdepth': input_TWHDN.d,
                     'kernelindex': -1,
                     'inputindex': -1,
                 };
