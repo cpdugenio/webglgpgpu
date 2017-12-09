@@ -21,8 +21,8 @@ void main() {
                 color += ifetch * kfetch;
                 */
                 frag_color +=
-                    texelFetch(input3d, ivec3(round(f_uv.y + y), round(f_uv.x + x), inputindex*inputdepth+z), 0) *
-                    texelFetch(kernel3d, ivec3(y, x, kernelindex*KW+z), 0);
+                    texelFetch(input3d, ivec3(round(f_uv.x + x), round(f_uv.y + y), inputindex*inputdepth+z), 0) *
+                    texelFetch(kernel3d, ivec3(x, y, kernelindex*KW+z), 0);
             }
         }
     }
