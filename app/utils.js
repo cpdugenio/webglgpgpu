@@ -25,7 +25,7 @@ define(function(){
             for(var row=0; row<WHDN.h*WHDN.d*WHDN.n; row++){
                 for(var col=0; col<WHDN.w; col++){
                     if(col) strgen += ",";
-                    strgen += pad('      ', data[row*WHDN.w+col], true);
+                    strgen += pad('        ', data[row*WHDN.w+col].toFixed(3), true);
                 }
                 strgen += '\n';
             }
