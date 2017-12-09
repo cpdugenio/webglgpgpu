@@ -1,6 +1,7 @@
 define(
-    ["text", "text!shaders/convolve.vs", "text!shaders/convolve.fs", "createarray"],
-    function(text, convolve_vs, convolve_fs, create_array){
+    ["text", "text!shaders/convolve.vs", "text!shaders/convolve.fs",
+        "createarray", "utils"],
+    function(text, convolve_vs, convolve_fs, create_array, utils){
         return function Convolution2D(gl){
             /*
              * Convolution 2D class
@@ -79,13 +80,13 @@ define(
                     gl, this.framebufferAttachments, input_TWHDN.w, input_TWHDN.h);
 
                 /* Setup target texture */
-                var output_WDHN = {
+                var output_WHDN = {
                     'w': input_TWHDN.w - this.kernel_TWHDN.w + 1,
                     'h': input_TWHDN.h - this.kernel_TWHDN.h + 1,
                     'd': this.kernel_TWHDN.n,
                     'n': input_TWHDN.n,
                 };
-                this.output_T = create_array(gl, output_WDHN, null);
+                this.output_T = create_array(gl, output_WHDN, null);
 
                 /* Begin forward pass */
                 gl.useProgram(this.program.program);
@@ -118,18 +119,19 @@ define(
                     }
                 }
 
-                /* Debugging purposes */
-                /*
-                var framebufferDump2D = new Float32Array(output_WDHN.w*output_WDHN.h*4);
-                gl.readPixels(0, 0, output_WDHN.w, output_WDHN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
-                var framebufferDump = new Float32Array(
-                    framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
-                console.log(framebufferDump);
-                */
+                if(1){
+                    /* Debugging purposes */
+                    var framebufferDump2D = new Float32Array(output_WHDN.w*output_WHDN.h*4);
+                    gl.readPixels(0, 0, output_WHDN.w, output_WHDN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
+                    var framebufferDump = new Float32Array(
+                        framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
+                    utils.print_pixels(output_WHDN, framebufferDump);
+                }
 
                 /* Target should be all set, return */
-                output_WDHN.t = this.output_T;
-                return output_WDHN;
+                /* output_WHDN is now output_TWHDN */
+                output_WHDN.t = this.output_T;
+                return output_WHDN;
             };
         }
     }
