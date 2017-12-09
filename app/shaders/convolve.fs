@@ -9,7 +9,7 @@ in vec2 f_uv;
 out vec4 frag_color;
 
 void main() {
-    vec4 color = vec4(0.0);
+    frag_color = vec4(0.0);
     for(float x=0.0; x<KU; x++){
         for(float y=0.0; y<KV; y++){
             for(float z=0.0; z<KW; z++){
@@ -20,12 +20,11 @@ void main() {
                 vec4 kfetch = texelFetch(kernel3d, sk.xyz, 0);
                 color += ifetch * kfetch;
                 */
-                color +=
+                frag_color +=
                     texelFetch(input3d, ivec3(round(f_uv.y + y), round(f_uv.x + x), inputindex*inputdepth+z), 0) *
                     texelFetch(kernel3d, ivec3(y, x, kernelindex*KW+z), 0);
             }
         }
     }
-    frag_color = color;
 }
 
