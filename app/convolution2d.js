@@ -2,7 +2,7 @@ define(
     ["text", "text!shaders/convolve.vs", "text!shaders/convolve.fs",
         "createarray", "utils"],
     function(text, convolve_vs, convolve_fs, create_array, utils){
-        return function Convolution2D(gl){
+        return function Convolution2D(gl, kernel_WHDN, kernel_data){
             /*
              * Convolution 2D class
              *
@@ -23,61 +23,60 @@ define(
 
             this.gl = gl;
 
-            this.init = function(kernel_WHDN, kernel_data){
-                /********************************************************/
-                /*                 SETUP SHADER                         */
-                /********************************************************/
+            /********************************************************/
+            /*                 SETUP SHADER                         */
+            /********************************************************/
 
-                /* Augment fragment shader */
-                var aug_convolve_fs = "#version 300 es\n"
-                                  + "#define KU " + kernel_WHDN.w + ".0 \n"
-                                  + "#define KV " + kernel_WHDN.h + ".0 \n"
-                                  + "#define KW " + kernel_WHDN.d + ".0 \n"
-                                  + "precision highp float;\n"
-                                  + "precision highp sampler3D;\n"
-                                  + convolve_fs;
-                this.program = twgl.createProgramInfo(this.gl, [convolve_vs, aug_convolve_fs]);
-                this.kernel_T = create_array(this.gl, kernel_WHDN, kernel_data);
-                this.kernel_TWHDN = {
-                    'w': kernel_WHDN.w,
-                    'h': kernel_WHDN.h,
-                    'd': kernel_WHDN.d,
-                    'n': kernel_WHDN.n,
-                    't': this.kernel_T,
-                };
+            /* Augment fragment shader */
+            const aug_convolve_fs = "#version 300 es\n"
+                              + "#define KU " + kernel_WHDN.w + ".0 \n"
+                              + "#define KV " + kernel_WHDN.h + ".0 \n"
+                              + "#define KW " + kernel_WHDN.d + ".0 \n"
+                              + "precision highp float;\n"
+                              + "precision highp sampler3D;\n"
+                              + convolve_fs;
+            this.program = twgl.createProgramInfo(this.gl, [convolve_vs, aug_convolve_fs]);
+            this.kernel_T = create_array(this.gl, kernel_WHDN, kernel_data);
+            this.kernel_TWHDN = {
+                'w': kernel_WHDN.w,
+                'h': kernel_WHDN.h,
+                'd': kernel_WHDN.d,
+                'n': kernel_WHDN.n,
+                't': this.kernel_T,
+            };
+
+            this.arrays = {
+                position: {
+                    numComponents: 2,
+                    data: [
+                        -1.0, -1.0,
+                        +1.0, -1.0,
+                        -1.0, +1.0,
+                        +1.0, +1.0,
+                    ],
+                },
             };
 
             this.forward = function(input_TWHDN){
                 /* Setup program draw buffer info */
-                var arrays = {
-                    position: {
-                        numComponents: 2,
-                        data: [
-                            -1.0, -1.0,
-                            +1.0, -1.0,
-                            -1.0, +1.0,
-                            +1.0, +1.0,
-                        ],
-                    },
-                    uv: {
-                        numComponents: 2,
-                        data: [
-                            -0.5,              -0.5,
-                            -0.5,              input_TWHDN.w-0.5,
-                            input_TWHDN.h-0.5, -0.5,
-                            input_TWHDN.h-0.5, input_TWHDN.w-0.5,
-                        ],
-                    },
+                this.arrays.uv = {
+                    numComponents: 2,
+                    data: [
+                        -0.5,              -0.5,
+                        -0.5,              input_TWHDN.w-0.5,
+                        input_TWHDN.h-0.5, -0.5,
+                        input_TWHDN.h-0.5, input_TWHDN.w-0.5,
+                    ],
                 };
-                this.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
-                this.framebufferAttachments = [
+                var bufferInfo = twgl.createBufferInfoFromArrays(gl, this.arrays);
+                framebufferAttachments = [
                     {
                         internalFormat: gl.R32F,
                         type: gl.FLOAT,
                     },
                 ];
-                this.framebufferInfo2D = twgl.createFramebufferInfo(
-                    gl, this.framebufferAttachments, input_TWHDN.w, input_TWHDN.h);
+                framebufferInfo2D = twgl.createFramebufferInfo(
+                    gl, framebufferAttachments, input_TWHDN.w, input_TWHDN.h);
 
                 /* Setup target texture */
                 var output_WHDN = {
@@ -90,7 +89,7 @@ define(
 
                 /* Begin forward pass */
                 gl.useProgram(this.program.program);
-                twgl.setBuffersAndAttributes(gl, this.program, this.bufferInfo);
+                twgl.setBuffersAndAttributes(gl, this.program, bufferInfo);
 
                 var uniforms = {
                     'input3d': input_TWHDN.t,
@@ -103,7 +102,7 @@ define(
                     for(var kernel_slice=0; kernel_slice<this.kernel_TWHDN.n; kernel_slice++)
                     {
                         /* Select correct target texture z-slice */
-                        twgl.bindFramebufferInfo(gl, this.framebufferInfo2D);
+                        twgl.bindFramebufferInfo(gl, framebufferInfo2D);
                         gl.bindTexture(gl.TEXTURE_3D, this.output_T);
                         gl.framebufferTextureLayer(
                             gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_T,
@@ -115,7 +114,7 @@ define(
                         twgl.setUniforms(this.program, uniforms);
 
                         /* Convolve! */
-                        twgl.drawBufferInfo(gl, this.bufferInfo, gl.TRIANGLE_STRIP, 4);
+                        twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLE_STRIP, 4);
                     }
                 }
 

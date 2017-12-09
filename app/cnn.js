@@ -74,11 +74,9 @@ require(
             't': input_T,
         }
 
-        var layer_1 = new Convolution2D(gl);
-        layer_1.init(kernel_1_WHDN, kernel_1_data);
-
-        var layer_2 = new Convolution2D(gl);
-        layer_2.init(kernel_2_WHDN, kernel_2_data);
+        /* Set up layers */
+        var layer_1 = new Convolution2D(gl, kernel_1_WHDN, kernel_1_data);
+        var layer_2 = new Convolution2D(gl, kernel_2_WHDN, kernel_2_data);
 
         utils.print_pixels(input_WHDN, input_data);
         var target_1_TWHDN = layer_1.forward(input_TWHDN);
