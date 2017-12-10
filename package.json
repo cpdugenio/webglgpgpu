@@ -8,6 +8,7 @@
   "dependencies": {
     "benchmark": "^2.1.4",
     "requirejs": "^2.3.5",
+    "requirejs-plugins": "https://github.com/millermedeiros/requirejs-plugins.git",
     "stats.js": "https://github.com/mrdoob/stats.js.git",
     "text": "https://github.com/requirejs/text.git",
     "twgl.js": "^4.0.0"
