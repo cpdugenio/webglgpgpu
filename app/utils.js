@@ -22,10 +22,10 @@ define(function(){
 
         print_pixels: function(WHDN, data){
             var strgen = "";
-            for(var row=0; row<WHDN.h*WHDN.d*WHDN.n; row++){
+            for(var row=0; row<WHDN.h; row++){
                 for(var col=0; col<WHDN.w; col++){
                     if(col) strgen += ",";
-                    strgen += pad('        ', data[row*WHDN.w+col].toFixed(3), true);
+                    strgen += pad('          ', data[row*WHDN.w+col].toFixed(2), true);
                 }
                 strgen += '\n';
             }

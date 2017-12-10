@@ -36,14 +36,7 @@ define(
                               + "precision highp sampler3D;\n"
                               + convolve_fs;
             this.program = twgl.createProgramInfo(this.gl, [convolve_vs, aug_convolve_fs]);
-            this.kernel_T = create_array(this.gl, kernel_WHDN, kernel_data);
-            this.kernel_TWHDN = {
-                'w': kernel_WHDN.w,
-                'h': kernel_WHDN.h,
-                'd': kernel_WHDN.d,
-                'n': kernel_WHDN.n,
-                't': this.kernel_T,
-            };
+            this.kernel_TWHDN = create_array(this.gl, kernel_WHDN, kernel_data);
 
             this.arrays = {
                 position: {
@@ -65,7 +58,7 @@ define(
                     'd': this.kernel_TWHDN.n,
                     'n': input_TWHDN.n,
                 };
-                this.output_T = create_array(gl, output_WHDN, null);
+                this.output_TWHDN = create_array(gl, output_WHDN, null);
 
                 /* Setup program draw buffer info */
                 this.arrays.uv = {
@@ -104,9 +97,9 @@ define(
                     {
                         /* Select correct target texture z-slice */
                         twgl.bindFramebufferInfo(gl, framebufferInfo2D);
-                        gl.bindTexture(gl.TEXTURE_3D, this.output_T);
+                        gl.bindTexture(gl.TEXTURE_3D, this.output_TWHDN.t);
                         gl.framebufferTextureLayer(
-                            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_T,
+                            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t,
                             0, input_slice*this.kernel_TWHDN.n+kernel_slice);
 
                         /* Setup uniforms */
@@ -120,18 +113,21 @@ define(
                 }
 
                 if(1){
-                    /* Debugging purposes */
-                    var framebufferDump2D = new Float32Array(output_WHDN.w*output_WHDN.h*4);
-                    gl.readPixels(0, 0, output_WHDN.w, output_WHDN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
-                    var framebufferDump = new Float32Array(
-                        framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
-                    utils.print_pixels(output_WHDN, framebufferDump);
+                    for(var slice=0; slice<output_WHDN.d*output_WHDN.n; slice++){
+                        /* Debugging purposes */
+                        gl.framebufferTextureLayer(
+                            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t,
+                            0, slice);
+                        var framebufferDump2D = new Float32Array(output_WHDN.w*output_WHDN.h*4);
+                        gl.readPixels(0, 0, output_WHDN.w, output_WHDN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
+                        var framebufferDump = new Float32Array(
+                            framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
+                        utils.print_pixels(output_WHDN, framebufferDump);
+                    }
                 }
 
                 /* Target should be all set, return */
-                /* output_WHDN is now output_TWHDN */
-                output_WHDN.t = this.output_T;
-                return output_WHDN;
+                return this.output_TWHDN;
             };
         }
     }

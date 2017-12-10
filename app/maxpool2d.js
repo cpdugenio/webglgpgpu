@@ -59,7 +59,7 @@ define(
                     'd': input_TWHDN.d,
                     'n': input_TWHDN.n,
                 };
-                this.output_T = create_array(gl, output_WHDN, null);
+                this.output_TWHDN = create_array(gl, output_WHDN, null);
 
                 /* Setup program draw buffer info */
                 this.arrays.uv = {
@@ -95,9 +95,9 @@ define(
                     /* Need to do across all channels and layers */
                     /* Select correct target texture z-slice */
                     twgl.bindFramebufferInfo(gl, this.framebufferInfo2D);
-                    gl.bindTexture(gl.TEXTURE_3D, this.output_T);
+                    gl.bindTexture(gl.TEXTURE_3D, this.output_TWHDN.t);
                     gl.framebufferTextureLayer(
-                        gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_T,
+                        gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t,
                         0, input_slice);
 
                     /* Setup uniforms */
@@ -119,8 +119,7 @@ define(
 
                 /* Target should be all set, return */
                 /* output_WHDN is now output_TWHDN */
-                output_WHDN.t = this.output_T;
-                return output_WHDN;
+                return this.output_TWHDN;
             };
         }
     }
