@@ -87,7 +87,6 @@ define(
 
                 var uniforms = {
                     'input3d': input_TWHDN.t,
-                    'inputdim': [input_TWHDN.x, input_TWHDN.y],
                     'inputindex': -1,
                 };
 
@@ -109,12 +108,17 @@ define(
                 }
 
                 if(1){
-                    /* Debugging purposes */
-                    var framebufferDump2D = new Float32Array(output_WHDN.w*output_WHDN.h*4);
-                    gl.readPixels(0, 0, output_WHDN.w, output_WHDN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
-                    var framebufferDump = new Float32Array(
-                        framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
-                    utils.print_pixels(output_WHDN, framebufferDump);
+                    for(var slice=0; slice<input_TWHDN.d*input_TWHDN.n; slice++){
+                            gl.framebufferTextureLayer(
+                                gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t,
+                                0, slice);
+                        /* Debugging purposes */
+                        var framebufferDump2D = new Float32Array(output_WHDN.w*output_WHDN.h*4);
+                        gl.readPixels(0, 0, output_WHDN.w, output_WHDN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
+                        var framebufferDump = new Float32Array(
+                            framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
+                        utils.print_pixels(output_WHDN, framebufferDump);
+                    }
                 }
 
                 /* Target should be all set, return */
