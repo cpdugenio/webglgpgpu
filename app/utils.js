@@ -29,7 +29,15 @@ define(function(){
                 }
                 strgen += '\n';
             }
-            console.log(strgen);
-        }
+        },
+
+        loadbytestr: function(bytestr){
+            decoded_bytestr = bytestr.split('').map(function(ch){
+                return ch.charCodeAt(0);
+            });
+            datauint8 = new Uint8Array(decoded_bytestr);
+            datafloat32 = new Float32Array(datauint8.buffer);
+            return datafloat32;
+        },
     };
 });
