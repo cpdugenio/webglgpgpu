@@ -1,6 +1,7 @@
 // Assume KU, KV, KW (floats) defined
 uniform sampler3D input3d;
 uniform sampler3D kernel3d;
+uniform sampler3D bias3d;
 uniform float kernelindex;
 uniform float inputindex;
 uniform float inputdepth;
@@ -22,7 +23,8 @@ void main() {
                 */
                 frag_color +=
                     texelFetch(input3d, ivec3(round(f_uv.x + x), round(f_uv.y + y), inputindex*inputdepth+z), 0) *
-                    texelFetch(kernel3d, ivec3(x, y, kernelindex*KW+z), 0);
+                    texelFetch(kernel3d, ivec3(x, y, kernelindex*KW+z), 0) +
+                        texelFetch(bias3d, ivec3(x, y, kernelindex*KW+z), 0);
             }
         }
     }

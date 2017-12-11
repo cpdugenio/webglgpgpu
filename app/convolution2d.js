@@ -2,7 +2,8 @@ define(
     ["text", "text!shaders/convolve.vs", "text!shaders/convolve.fs",
         "createarray", "utils"],
     function(text, convolve_vs, convolve_fs, create_array, utils){
-        return function Convolution2D(gl, kernel_WHDN, kernel_data){
+        return function Convolution2D(gl,
+                kernel_WHDN, kernel_data, bias_WHDN, bias_data){
             /*
              * Convolution 2D class
              *
@@ -37,6 +38,7 @@ define(
                               + convolve_fs;
             this.program = twgl.createProgramInfo(this.gl, [convolve_vs, aug_convolve_fs]);
             this.kernel_TWHDN = create_array(this.gl, kernel_WHDN, kernel_data);
+            this.bias_TWHDN = create_array(this.gl, bias_WHDN, bias_data);
 
             this.arrays = {
                 position: {
@@ -87,6 +89,7 @@ define(
                 var uniforms = {
                     'input3d': input_TWHDN.t,
                     'kernel3d': this.kernel_TWHDN.t,
+                    'bias3d': this.bias_TWHDN.t,
                     'inputdepth': input_TWHDN.d,
                     'kernelindex': -1,
                     'inputindex': -1,

@@ -50,6 +50,11 @@ require(
             kernel_1_WHDN.w*kernel_1_WHDN.h*kernel_1_WHDN.d*kernel_1_WHDN.n);
         kernel_1_data.fill(1.0);
 
+        const bias_1_WHDN = {'w': 3, 'h': 3, 'd': 1, 'n': 1,};
+        const bias_1_data = new Float32Array(
+            bias_1_WHDN.w*bias_1_WHDN.h*bias_1_WHDN.d*bias_1_WHDN.n);
+        bias_1_data.fill(100.0);
+
         const fc_kernel_1_WHDN = {'w': 7, 'h': 7, 'd': 1, 'n': 4,};
         const fc_kernel_1_data = new Float32Array(
             fc_kernel_1_WHDN.w*fc_kernel_1_WHDN.h*fc_kernel_1_WHDN.d*fc_kernel_1_WHDN.n);
@@ -60,15 +65,12 @@ require(
         }
 
         /* Set up layers */
-        var layer_1 = new Convolution2D(gl, kernel_1_WHDN, kernel_1_data);
+        var layer_1 = new Convolution2D(gl, kernel_1_WHDN, kernel_1_data, bias_1_WHDN, bias_1_data);
         var maxpool = new Maxpool2D(gl, 2, 2);
-        var fc_kernel_1 = new Convolution2D(gl, fc_kernel_1_WHDN, fc_kernel_1_data);
 
         utils.print_pixels(input_WHDN, input_data);
         var target_1_TWHDN = layer_1.forward(input_TWHDN);
         var target_maxpool_1 = maxpool.forward(target_1_TWHDN);
-        var target_fc_kernel_1 = fc_kernel_1.forward(target_maxpool_1);
-        console.log(target_fc_kernel_1);
-        // var target_2_TWHDN = layer_2.forward(target_maxpool_1);
+        console.log(target_maxpool_1);
     }
 );
