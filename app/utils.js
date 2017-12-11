@@ -29,6 +29,7 @@ define(function(){
                 }
                 strgen += '\n';
             }
+            console.log(strgen);
         },
 
         loadbytestr: function(bytestr){
