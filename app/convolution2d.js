@@ -59,7 +59,7 @@ define(
                     'd': this.kernel_TWHDN.n,
                     'n': input_TWHDN.n,
                 };
-                this.output_TWHDN = create_array(gl, output_WHDN, null);
+                var output_TWHDN = create_array(gl, output_WHDN, null);
 
                 /* Setup program draw buffer info */
                 this.arrays.uv = {
@@ -98,9 +98,9 @@ define(
                     for(var kernel_slice=0; kernel_slice<this.kernel_TWHDN.n; kernel_slice++){
                         /* Select correct target texture z-slice */
                         twgl.bindFramebufferInfo(gl, framebufferInfo2D);
-                        gl.bindTexture(gl.TEXTURE_3D, this.output_TWHDN.t[input_slice]);
+                        gl.bindTexture(gl.TEXTURE_3D, output_TWHDN.t[input_slice]);
                         gl.framebufferTextureLayer(
-                            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t[input_slice],
+                            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, output_TWHDN.t[input_slice],
                             0, kernel_slice);
 
                         /* Setup uniforms */
@@ -122,7 +122,7 @@ define(
                         for(var kernel_slice=0; kernel_slice<this.kernel_TWHDN.n; kernel_slice++){
                             /* Debugging purposes */
                             gl.framebufferTextureLayer(
-                                gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t[input_slice],
+                                gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, output_TWHDN.t[input_slice],
                                 0, kernel_slice);
                             var framebufferDump2D = new Float32Array(output_WHDN.w*output_WHDN.h*4);
                             gl.readPixels(0, 0, output_WHDN.w, output_WHDN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
@@ -134,7 +134,7 @@ define(
                 }
 
                 /* Target should be all set, return */
-                return this.output_TWHDN;
+                return output_TWHDN;
             };
         }
     }

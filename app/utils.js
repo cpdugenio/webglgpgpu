@@ -10,14 +10,13 @@ define(function(){
       }
     }
     return {
-        get_image_pixels: function(ctx2d, w, h, image){
-            ctx2d.clearRect(0,0,w,h)
-            ctx2d.drawImage(image, 0, 0, w, h, 0, 0, w, h)
-            var pixels = new Float32Array(
-                canvas.getContext('2d').getImageData(0, 0, w, h).data
-            );
-            ctx2d.clearRect(0,0,w,h)
-            return pixels;
+        get_image_pixels: function(img){
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            context.drawImage(img, 0, 0 );
+            return context.getImageData(0, 0, img.width, img.height);
         },
 
         print_pixels: function(WHDN, data){
@@ -33,12 +32,28 @@ define(function(){
         },
 
         loadbytestr: function(bytestr){
-            decoded_bytestr = bytestr.split('').map(function(ch){
-                return ch.charCodeAt(0);
-            });
-            datauint8 = new Uint8Array(decoded_bytestr);
-            datafloat32 = new Float32Array(datauint8.buffer);
-            return datafloat32;
+            var datauint8 = new Uint8Array(
+                bytestr.split('').map(function(ch){
+                    return ch.charCodeAt(0);
+                })
+            );
+            return new Float32Array(datauint8.buffer);
         },
+
+        argmax: function(arr){
+            var argmaxes = [];
+            for(var p = 0; p<arr.length; p++){
+                var currmax = -10000.0;
+                var arg = -1;
+                for(var v = 0; v<arr[p].length; v++){
+                    if(arr[p][v] > currmax){
+                        arg = v;
+                        currmax = arr[p][v];
+                    }
+                }
+                argmaxes.push(arg);
+            }
+            return argmaxes;
+        }
     };
 });
