@@ -3,7 +3,7 @@ define(
         "createarray", "utils"],
     function(text, convolve_vs, convolve_fs, create_array, utils){
         return function Convolution2D(gl,
-                kernel_WHDN, kernel_data, bias_WHDN, bias_data){
+                kernel_WHDN, kernel_data, bias_data){
             /*
              * Convolution 2D class
              *
@@ -38,7 +38,6 @@ define(
                               + convolve_fs;
             this.program = twgl.createProgramInfo(this.gl, [convolve_vs, aug_convolve_fs]);
             this.kernel_TWHDN = create_array(this.gl, kernel_WHDN, kernel_data);
-            this.bias_TWHDN = create_array(this.gl, bias_WHDN, bias_data);
 
             this.arrays = {
                 position: {
@@ -66,10 +65,10 @@ define(
                 this.arrays.uv = {
                     numComponents: 2,
                     data: [
-                        -0.5,              -0.5,             
+                        -0.5,              -0.5,
                         input_TWHDN.w-0.5, -0.5,
-                        -0.5,              input_TWHDN.h-0.5, 
-                        input_TWHDN.w-0.5, input_TWHDN.h-0.5, 
+                        -0.5,              input_TWHDN.h-0.5,
+                        input_TWHDN.w-0.5, input_TWHDN.h-0.5,
                     ],
                 };
                 var bufferInfo = twgl.createBufferInfoFromArrays(gl, this.arrays);
@@ -89,10 +88,10 @@ define(
                 var uniforms = {
                     'input3d': input_TWHDN.t,
                     'kernel3d': this.kernel_TWHDN.t,
-                    'bias3d': this.bias_TWHDN.t,
                     'inputdepth': input_TWHDN.d,
                     'kernelindex': -1,
                     'inputindex': -1,
+                    'bias': -1,
                 };
 
                 for(var input_slice=0; input_slice<input_TWHDN.n; input_slice++){
@@ -108,6 +107,7 @@ define(
                         /* Setup uniforms */
                         uniforms.kernelindex = kernel_slice;
                         uniforms.inputindex = input_slice;
+                        uniforms.bias = bias_data[kernel_slice];
                         twgl.setUniforms(this.program, uniforms);
 
                         /* Convolve! */
@@ -115,7 +115,8 @@ define(
                     }
                 }
 
-                if(1){
+                if(0){
+                    console.log("\n");
                     for(var slice=0; slice<output_WHDN.d*output_WHDN.n; slice++){
                         /* Debugging purposes */
                         gl.framebufferTextureLayer(
