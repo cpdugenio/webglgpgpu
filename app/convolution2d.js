@@ -86,28 +86,29 @@ define(
                 twgl.setBuffersAndAttributes(gl, this.program, bufferInfo);
 
                 var uniforms = {
-                    'input3d': input_TWHDN.t,
-                    'kernel3d': this.kernel_TWHDN.t,
                     'inputdepth': input_TWHDN.d,
                     'kernelindex': -1,
                     'inputindex': -1,
                     'bias': -1,
+                    'input3d': null,
+                    'kernel3d': null,
                 };
 
                 for(var input_slice=0; input_slice<input_TWHDN.n; input_slice++){
-                    for(var kernel_slice=0; kernel_slice<this.kernel_TWHDN.n; kernel_slice++)
-                    {
+                    for(var kernel_slice=0; kernel_slice<this.kernel_TWHDN.n; kernel_slice++){
                         /* Select correct target texture z-slice */
                         twgl.bindFramebufferInfo(gl, framebufferInfo2D);
-                        gl.bindTexture(gl.TEXTURE_3D, this.output_TWHDN.t);
+                        gl.bindTexture(gl.TEXTURE_3D, this.output_TWHDN.t[input_slice]);
                         gl.framebufferTextureLayer(
-                            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t,
-                            0, input_slice*this.kernel_TWHDN.n+kernel_slice);
+                            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t[input_slice],
+                            0, kernel_slice);
 
                         /* Setup uniforms */
                         uniforms.kernelindex = kernel_slice;
                         uniforms.inputindex = input_slice;
                         uniforms.bias = bias_data[kernel_slice];
+                        uniforms.input3d = input_TWHDN.t[input_slice];
+                        uniforms.kernel3d = this.kernel_TWHDN.t[kernel_slice];
                         twgl.setUniforms(this.program, uniforms);
 
                         /* Convolve! */
@@ -115,18 +116,20 @@ define(
                     }
                 }
 
-                if(0){
+                if(gl.DEBUG){
                     console.log("\n");
-                    for(var slice=0; slice<output_WHDN.d*output_WHDN.n; slice++){
-                        /* Debugging purposes */
-                        gl.framebufferTextureLayer(
-                            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t,
-                            0, slice);
-                        var framebufferDump2D = new Float32Array(output_WHDN.w*output_WHDN.h*4);
-                        gl.readPixels(0, 0, output_WHDN.w, output_WHDN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
-                        var framebufferDump = new Float32Array(
-                            framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
-                        utils.print_pixels(output_WHDN, framebufferDump);
+                    for(var input_slice=0; input_slice<input_TWHDN.n; input_slice++){
+                        for(var kernel_slice=0; kernel_slice<this.kernel_TWHDN.n; kernel_slice++){
+                            /* Debugging purposes */
+                            gl.framebufferTextureLayer(
+                                gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t[input_slice],
+                                0, kernel_slice);
+                            var framebufferDump2D = new Float32Array(output_WHDN.w*output_WHDN.h*4);
+                            gl.readPixels(0, 0, output_WHDN.w, output_WHDN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
+                            var framebufferDump = new Float32Array(
+                                framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
+                            utils.print_pixels(output_WHDN, framebufferDump);
+                        }
                     }
                 }
 

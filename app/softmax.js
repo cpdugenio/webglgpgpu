@@ -54,11 +54,11 @@ define(
             this.forward = function(input_TWHDN){
                 /* Setup target texture */
                 var output_WHDN = {
-                    /* NOTE: Incoming is 1x1x(d*n)
-                     * -> Reshaping to dxnx1x1 */
+                    /* NOTE: Incoming is 1x1xd, n pieces
+                     * -> Reshaping to dx1xn, 1 piece */
                     'w': input_TWHDN.d,
-                    'h': input_TWHDN.n,
-                    'd': 1,
+                    'h': 1,
+                    'd': input_TWHDN.n,
                     'n': 1,
                 };
                 this.output_TWHDN = create_array(gl, output_WHDN, null);
@@ -67,51 +67,59 @@ define(
                 this.arrays.uv = {
                     numComponents: 2,
                     data: [
-                        -0.5,              -0.5,              
-                        input_TWHDN.d-0.5, -0.5,              
-                        -0.5,              input_TWHDN.n-0.5, 
-                        input_TWHDN.d-0.5, input_TWHDN.n-0.5, 
+                        -0.5,              -0.5,
+                        input_TWHDN.d-0.5, -0.5,
+                        -0.5,              input_TWHDN.n-0.5,
+                        input_TWHDN.d-0.5, input_TWHDN.n-0.5,
                     ],
                 };
-                var bufferInfo = twgl.createBufferInfoFromArrays(gl, this.arrays);
-                var framebufferAttachments = [
+                this.bufferInfo = twgl.createBufferInfoFromArrays(gl, this.arrays);
+                this.framebufferAttachments = [
                     {
                         internalFormat: gl.R32F,
                         type: gl.FLOAT,
                     },
                 ];
-                var framebufferInfo2D = twgl.createFramebufferInfo(
-                    gl, framebufferAttachments, input_TWHDN.d, input_TWHDN.n);
+                this.framebufferInfo2D = twgl.createFramebufferInfo(
+                    gl, this.framebufferAttachments, input_TWHDN.d, input_TWHDN.n);
 
                 /* Begin forward pass */
                 gl.useProgram(this.program.program);
-                twgl.setBuffersAndAttributes(gl, this.program, bufferInfo);
-
-                /* Select correct target texture z-slice */
-                twgl.bindFramebufferInfo(gl, framebufferInfo2D);
-                gl.bindTexture(gl.TEXTURE_3D, this.output_TWHDN.t);
-                gl.framebufferTextureLayer(
-                    gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t,
-                    0, 0);
-
+                twgl.setBuffersAndAttributes(gl, this.program, this.bufferInfo);
 
                 var uniforms = {
-                    'input3d': input_TWHDN.t,
+                    'input3d': null,
                 };
 
-                /* Setup uniforms */
-                twgl.setUniforms(this.program, uniforms);
+                for(var input_slice=0; input_slice<input_TWHDN.n; input_slice++){
+                    /* Select correct target texture z-slice */
+                    twgl.bindFramebufferInfo(gl, this.framebufferInfo2D);
+                    gl.bindTexture(gl.TEXTURE_3D, this.output_TWHDN.t[0]);
+                    gl.framebufferTextureLayer(
+                        gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t[0],
+                        0, input_slice);
 
-                /* Softmax! */
-                twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLE_STRIP, 4);
+                    /* Setup uniforms */
+                    uniforms.input3d = input_TWHDN.t[input_slice];
+                    twgl.setUniforms(this.program, uniforms);
 
-                if(1){
-                    /* Debugging purposes */
-                    var framebufferDump2D = new Float32Array(output_WHDN.w*output_WHDN.h*4);
-                    gl.readPixels(0, 0, output_WHDN.w, output_WHDN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
-                    var framebufferDump = new Float32Array(
-                        framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
-                    utils.print_pixels(output_WHDN, framebufferDump);
+                    /* Convolve! */
+                    twgl.drawBufferInfo(gl, this.bufferInfo, gl.TRIANGLE_STRIP, 4);
+                }
+
+
+                if(gl.DEBUG){
+                    for(var depth_slice=0; depth_slice<this.output_TWHDN.d; depth_slice++){
+                        gl.framebufferTextureLayer(
+                            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.output_TWHDN.t[0],
+                            0, depth_slice);
+                        /* Debugging purposes */
+                        var framebufferDump2D = new Float32Array(output_WHDN.w*output_WHDN.h*4);
+                        gl.readPixels(0, 0, output_WHDN.w, output_WHDN.h, gl.RGBA, gl.FLOAT, framebufferDump2D)
+                        var framebufferDump = new Float32Array(
+                            framebufferDump2D.filter(function (data, i) { return i % 4 == 0; }));
+                        console.log(framebufferDump);
+                    }
                 }
 
                 /* Target should be all set, return */

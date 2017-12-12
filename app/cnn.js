@@ -53,7 +53,7 @@ require(
             'w': 32,
             'h': 32,
             'd': 3,
-            'n': 1,
+            'n': 7,
         };
         const input_data = new Float32Array(input_WHDN.w*input_WHDN.h*input_WHDN.d*input_WHDN.n);
         input_data.fill(1.0);
@@ -108,6 +108,7 @@ require(
         var FC_1_target = relu.forward(FC_1.forward(layer_4_target));
         var FC_2_target = relu.forward(FC_2.forward(FC_1_target));
         var FC_3_target =              FC_3.forward(FC_2_target);
+        gl.DEBUG = 1;
         var prob = softmax.forward(FC_3_target);
     }
 );
