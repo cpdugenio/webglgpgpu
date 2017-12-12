@@ -60,13 +60,13 @@ require(
         var input_TWHDN = create_array(gl, input_WHDN, input_data);
 
         /* Load kernel/bias data */
-        var layer_1_k_WHDN = { 'n': 8,    'd': 3,    'w': 3,   'h': 3, };
-        var layer_2_k_WHDN = { 'n': 8,    'd': 8,    'w': 3,   'h': 3, };
-        var layer_3_k_WHDN = { 'n': 16,   'd': 8,    'w': 3,   'h': 3, };
-        var layer_4_k_WHDN = { 'n': 16,   'd': 16,   'w': 3,   'h': 3, };
-        var FC_1_k_WHDN =    { 'n': 128,  'd': 16,   'w': 5,   'h': 5, };
-        var FC_2_k_WHDN =    { 'n': 64,   'd': 128,  'w': 1,   'h': 1, };
-        var FC_3_k_WHDN =    { 'n': 10,   'd': 64,   'w': 1,   'h': 1, };
+        var layer_1_k_WHDN = { 'n': 32,   'd': 3,    'w': 3,   'h': 3, };
+        var layer_2_k_WHDN = { 'n': 32,   'd': 32,   'w': 3,   'h': 3, };
+        var layer_3_k_WHDN = { 'n': 64,   'd': 32,   'w': 3,   'h': 3, };
+        var layer_4_k_WHDN = { 'n': 64,   'd': 64,   'w': 3,   'h': 3, };
+        var FC_1_k_WHDN =    { 'n': 1024, 'd': 64,   'w': 5,   'h': 5, };
+        var FC_2_k_WHDN =    { 'n': 256,  'd': 1024, 'w': 1,   'h': 1, };
+        var FC_3_k_WHDN =    { 'n': 10,   'd': 256,  'w': 1,   'h': 1, };
 
         var layer_1_k = utils.loadbytestr(layer_1_k_bs);
         var layer_1_b = utils.loadbytestr(layer_1_b_bs);
