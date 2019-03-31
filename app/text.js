@@ -1,1 +1,1 @@
-../node_modules/text/text.js
+../bower_components/text/text.js

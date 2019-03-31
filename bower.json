@@ -1,10 +1,13 @@
 {
   "name": "webglgpgpu",
-  "version": "1.0.0",
   "description": "WebGL GPGPU",
   "main": "app/main.js",
-  "author": "Christian Dugenio <christiandugenio@gmail.com>",
+  "authors": [
+    "Christian Dugenio <christiandugenio@gmail.com>"
+  ],
   "license": "MIT",
+  "homepage": "https://github.com/cpdugenio/webglgpgpu",
+  "private": true,
   "dependencies": {
     "benchmark": "^2.1.4",
     "requirejs": "^2.3.5",
@@ -12,5 +15,12 @@
     "stats.js": "https://github.com/mrdoob/stats.js.git",
     "text": "https://github.com/requirejs/text.git",
     "twgl.js": "^4.0.0"
-  }
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
 }

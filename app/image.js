@@ -1,1 +1,1 @@
-../node_modules/requirejs-plugins/src/image.js
+../bower_components/requirejs-plugins/src/image.js
