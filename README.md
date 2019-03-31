@@ -34,3 +34,6 @@ printed is the true label. The second line printed is the classified label.
 I believe I trained the exact model in TensorFlow and dumped the weights to be
 used here.
 
+I lost track of a few local commits that extract the ground truth and compare
+against the probabilities computed for each catagory, so this should be possible
+to do.
